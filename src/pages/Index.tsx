@@ -3,6 +3,8 @@ import ConfigurationSidebar from "@/components/ConfigurationSidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { MessageSquare, Image } from "lucide-react";
 
 const Index = () => {
   const [apiKey, setApiKey] = React.useState<string | null>(
@@ -11,6 +13,7 @@ const Index = () => {
   const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
   const [analyzing, setAnalyzing] = React.useState(false);
   const [results, setResults] = React.useState<string | null>(null);
+  const [showChat, setShowChat] = React.useState(false);
 
   const handleApiKeySubmit = (key: string) => {
     localStorage.setItem("GOOGLE_API_KEY", key);
@@ -30,6 +33,24 @@ const Index = () => {
       description: "API Key has been reset.",
       duration: 3000,
     });
+  };
+
+  const resetAnalysis = () => {
+    setSelectedImage(null);
+    setResults(null);
+    setAnalyzing(false);
+    setShowChat(false);
+  };
+
+  const toggleChat = () => {
+    setShowChat(!showChat);
+    if (!showChat) {
+      toast({
+        title: "Chat Feature",
+        description: "You can now ask follow-up questions about your diagnosis.",
+        duration: 3000,
+      });
+    }
   };
 
   const analyzeImage = async (imageFile: File) => {
@@ -136,6 +157,35 @@ const Index = () => {
             />
 
             <AnalysisResults loading={analyzing} results={results} />
+
+            {results && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+                <Button
+                  onClick={resetAnalysis}
+                  className="flex items-center gap-2"
+                  variant="outline"
+                >
+                  <Image className="w-4 h-4" />
+                  Analyze Another Image
+                </Button>
+                <Button
+                  onClick={toggleChat}
+                  className="flex items-center gap-2"
+                  variant={showChat ? "secondary" : "outline"}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {showChat ? "Hide Chat" : "Ask Follow-up Questions"}
+                </Button>
+              </div>
+            )}
+
+            {showChat && (
+              <div className="mt-6 p-4 bg-white rounded-lg shadow">
+                <p className="text-center text-gray-600">
+                  Chat feature coming soon! You'll be able to ask follow-up questions about your diagnosis here.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

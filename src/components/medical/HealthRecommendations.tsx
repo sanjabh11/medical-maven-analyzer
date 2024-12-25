@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dumbbell, Leaf, Scale } from "lucide-react";
+import ChatInterface from "@/components/ChatInterface";
+import { Footer } from "@/components/layout/Footer";
 import FeatureDescription from "./FeatureDescription";
 
 interface HealthProfile {
@@ -175,6 +177,27 @@ const HealthRecommendations = () => {
           )}
         </CardContent>
       </Card>
+
+      {recommendations && (
+        <>
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={() => setShowChat(!showChat)}
+              className="bg-medical-blue hover:bg-medical-blue/90"
+            >
+              {showChat ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
+            </Button>
+          </div>
+
+          {showChat && (
+            <ChatInterface 
+              apiKey={null} 
+              analysisResults={JSON.stringify(recommendations)}
+            />
+          )}
+        </>
+      )}
+      <Footer />
     </div>
   );
 };

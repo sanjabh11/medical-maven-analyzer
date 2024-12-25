@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Bandage, Activity } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
+import { Footer } from "@/components/layout/Footer";
 import FeatureDescription from "./FeatureDescription";
 
 const FIRST_AID_TOPICS = {
@@ -130,6 +131,7 @@ const FirstAidGuide = () => {
           )}
         </>
       )}
+      <Footer />
     </div>
   );
 };

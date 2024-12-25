@@ -124,6 +124,10 @@ const Index = () => {
     }
   };
 
+  const handleSelectImage = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
   const renderContent = () => {
     switch (currentTab) {
       case "image-analysis":
@@ -138,6 +142,7 @@ const Index = () => {
             onReset={handleReset}
             onAddImage={handleAddImage}
             onToggleChat={handleToggleChat}
+            onSelectImage={handleSelectImage}
           />
         );
       case "symptoms":

@@ -6,7 +6,7 @@ export const getGoogleApiKey = async () => {
       .from('secrets')
       .select('value')
       .eq('name', 'GOOGLE_API_KEY')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching API key:', error);

@@ -1,19 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Check if environment variables are defined
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Initialize Supabase client only if URL and key are available
+const initSupabase = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase URL and Anon Key must be defined');
-}
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase configuration missing. Please ensure you have connected to Supabase in the project settings.');
+    return null;
+  }
 
-const supabase = createClient(
-  supabaseUrl || '',  // Provide empty string as fallback to prevent runtime error
-  supabaseKey || ''   // Provide empty string as fallback to prevent runtime error
-);
+  return createClient(supabaseUrl, supabaseKey);
+};
 
 export const getGoogleApiKey = async () => {
+  const supabase = initSupabase();
+  
+  if (!supabase) {
+    console.error('Unable to initialize Supabase client');
+    return localStorage.getItem('GOOGLE_API_KEY'); // Fallback to localStorage if Supabase isn't configured
+  }
+
   try {
     const { data, error } = await supabase
       .from('secrets')
@@ -23,12 +30,12 @@ export const getGoogleApiKey = async () => {
 
     if (error) {
       console.error('Error fetching API key:', error);
-      return null;
+      return localStorage.getItem('GOOGLE_API_KEY'); // Fallback to localStorage
     }
 
-    return data?.value || null;
+    return data?.value || localStorage.getItem('GOOGLE_API_KEY'); // Return Supabase value or fallback to localStorage
   } catch (error) {
     console.error('Failed to fetch Google API key:', error);
-    return null;
+    return localStorage.getItem('GOOGLE_API_KEY'); // Fallback to localStorage
   }
 };

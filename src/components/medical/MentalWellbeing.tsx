@@ -5,13 +5,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Brain, Heart, SmilePlus } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
-</lov-replace>
-<lov-search>
-      <Footer />
-    </div>
-</lov-search>
-<lov-replace>
-    </div>
 import FeatureDescription from "./FeatureDescription";
 
 const PHQ9_QUESTIONS = [

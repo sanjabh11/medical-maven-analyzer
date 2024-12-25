@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
@@ -12,6 +12,7 @@ import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image, Plus } from "lucide-react";
+import { getGoogleApiKey } from "@/utils/apiKeyManager";
 
 interface ImageAnalysis {
   file: File;
@@ -19,12 +20,20 @@ interface ImageAnalysis {
 }
 
 const Index = () => {
-  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
-  const [currentPatientImages, setCurrentPatientImages] = React.useState<ImageAnalysis[]>([]);
-  const [analyzing, setAnalyzing] = React.useState(false);
-  const [showChat, setShowChat] = React.useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = React.useState<number>(0);
-  const [currentTab, setCurrentTab] = React.useState("image-analysis");
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [currentPatientImages, setCurrentPatientImages] = useState<ImageAnalysis[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [currentTab, setCurrentTab] = useState("image-analysis");
+
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      const key = await getGoogleApiKey();
+      setApiKey(key);
+    };
+    fetchApiKey();
+  }, []);
 
   const handleImageUpload = async (file: File) => {
     setAnalyzing(true);

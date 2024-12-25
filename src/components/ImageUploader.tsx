@@ -74,10 +74,19 @@ const ImageUploader = ({ onImageUpload, isLoading = false, currentImage, onReset
   }, [previewUrl]);
 
   return (
-    <Card className={`w-full max-w-2xl mx-auto ${dragActive ? "border-medical-blue" : ""}`}>
-      <CardContent className="p-4 sm:p-8">
+    <Card className={cn(
+      "w-full max-w-2xl mx-auto transition-colors",
+      dragActive ? "border-medical-blue" : "",
+      "mt-4 sm:mt-8"
+    )}>
+      <CardContent className="p-3 sm:p-6">
         <div
-          className="relative flex flex-col items-center justify-center space-y-4 border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+          className={cn(
+            "relative flex flex-col items-center justify-center space-y-4",
+            "border-2 border-dashed rounded-lg",
+            "bg-gray-50 hover:bg-gray-100 transition-colors",
+            "min-h-[200px] sm:min-h-[300px]"
+          )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
@@ -104,7 +113,7 @@ const ImageUploader = ({ onImageUpload, isLoading = false, currentImage, onReset
             disabled={isLoading}
           />
         </div>
-        <p className="text-xs text-center text-gray-500 mt-4">
+        <p className="text-xs text-center text-gray-500 mt-3 sm:mt-4 px-2">
           Supported formats: JPG, JPEG, PNG, DICOM, PDF, DOC, DOCX
         </p>
       </CardContent>

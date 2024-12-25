@@ -53,33 +53,37 @@ const Index = () => {
         reader.readAsDataURL(imageFile);
       });
 
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Analyze this medical image and provide a detailed report including:
-                1. Image Type & Region
-                2. Key Findings
-                3. Diagnostic Assessment
-                4. Patient-Friendly Explanation
-                Be thorough and specific in your analysis.`
-            }, {
-              inline_data: {
-                mime_type: "image/jpeg",
-                data: base64Image
-              }
+      // Note the API key is now passed as a query parameter
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `Analyze this medical image and provide a detailed report including:
+                  1. Image Type & Region
+                  2. Key Findings
+                  3. Diagnostic Assessment
+                  4. Patient-Friendly Explanation
+                  Be thorough and specific in your analysis.`
+              }, {
+                inline_data: {
+                  mime_type: "image/jpeg",
+                  data: base64Image
+                }
+              }]
             }]
-          }]
-        })
-      });
+          })
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `API request failed: ${response.statusText}`);
       }
 
       const data = await response.json();

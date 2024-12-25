@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import FilePreview from "./upload/FilePreview";
 import UploadZone from "./upload/UploadZone";
+import { cn } from "@/lib/utils";
 
 interface ImageUploaderProps {
   onImageUpload: (file: File) => void;

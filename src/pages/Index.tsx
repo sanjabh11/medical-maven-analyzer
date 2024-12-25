@@ -3,6 +3,7 @@ import ConfigurationSidebar from "@/components/ConfigurationSidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
 import ChatInterface from "@/components/ChatInterface";
+import HeroSection from "@/components/medical/HeroSection";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image, Plus } from "lucide-react";
@@ -94,7 +95,7 @@ const Index = () => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Analyze this medical image and provide a detailed report including:
+                text: `Analyze this medical image and provide a detailed report in the following format:
                   1. Image Type & Region
                   2. Key Findings
                   3. Diagnostic Assessment
@@ -141,6 +142,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <HeroSection />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
@@ -152,15 +154,6 @@ const Index = () => {
           </div>
 
           <div className="md:col-span-2 space-y-8">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-medical-blue mb-4">
-                🏥 Medical Imaging Diagnosis Agent
-              </h1>
-              <p className="text-gray-600">
-                Upload medical images for professional AI-powered analysis
-              </p>
-            </div>
-
             {currentPatientImages.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex gap-2 overflow-x-auto pb-4">
@@ -180,7 +173,7 @@ const Index = () => {
                   onImageUpload={handleImageUpload}
                   isLoading={analyzing}
                   currentImage={currentAnalysis?.file}
-                  onReset={() => setSelectedImageIndex(currentPatientImages.length)}
+                  onReset={addAnotherImage}
                 />
               </div>
             ) : (

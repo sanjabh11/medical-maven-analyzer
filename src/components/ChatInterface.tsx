@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Image as ImageIcon } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AnalysisResponse from "@/components/medical/AnalysisResponse";
 
 interface ChatInterfaceProps {
   apiKey: string | null;
@@ -43,7 +44,7 @@ const ChatInterface = ({ apiKey, analysisResults, onImageUpload }: ChatInterface
               {
                 parts: [
                   {
-                    text: `Given this medical analysis: ${analysisResults}\n\nUser question: ${inputMessage}\n\nPlease provide a clear, accurate, and helpful response based on the medical analysis provided.`,
+                    text: `Given this medical analysis: ${analysisResults}\n\nUser question: ${inputMessage}\n\nPlease provide a clear, accurate, and helpful response based on the medical analysis provided. Format your response in numbered sections:\n1. Analysis\n2. Key Findings\n3. Recommendations\n4. Summary`,
                   },
                 ],
               },
@@ -87,31 +88,15 @@ const ChatInterface = ({ apiKey, analysisResults, onImageUpload }: ChatInterface
 
   return (
     <div className="mt-6 p-4 bg-white rounded-lg shadow">
-      <ScrollArea className="h-[400px] pr-4">
+      <ScrollArea className="h-[500px] pr-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
-            <div
+            <AnalysisResponse
               key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-[80%] p-4 rounded-lg ${
-                  message.role === "user"
-                    ? "bg-medical-blue text-white"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                <div className="text-sm mb-1">
-                  {message.role === "user" ? "You" : "AI Assistant"}
-                </div>
-                <div className="text-base">{message.content}</div>
-                <div className="text-xs mt-2 opacity-70">
-                  {message.timestamp.toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
+              response={message.content}
+              timestamp={message.timestamp}
+              isAI={message.role === "assistant"}
+            />
           ))}
         </div>
       </ScrollArea>
@@ -135,10 +120,15 @@ const ChatInterface = ({ apiKey, analysisResults, onImageUpload }: ChatInterface
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
+          className="text-medical-blue hover:bg-medical-blue hover:text-white"
         >
           <ImageIcon className="h-4 w-4" />
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          className="bg-medical-blue hover:bg-medical-blue/90"
+        >
           <Send className="h-4 w-4" />
         </Button>
       </form>

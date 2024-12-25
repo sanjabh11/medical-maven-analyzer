@@ -53,9 +53,9 @@ const Index = () => {
         reader.readAsDataURL(imageFile);
       });
 
-      // Note the API key is now passed as a query parameter
+      // Using the new gemini-1.5-flash model
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: {

@@ -1,9 +1,9 @@
 import React from "react";
-import ConfigurationSidebar from "@/components/ConfigurationSidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
 import ChatInterface from "@/components/ChatInterface";
 import HeroSection from "@/components/medical/HeroSection";
+import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image, Plus } from "lucide-react";
@@ -141,32 +141,30 @@ const Index = () => {
   const currentAnalysis = currentPatientImages[selectedImageIndex];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
       <HeroSection />
-      <div className="container mx-auto px-4 py-8">
+      
+      <main className="flex-1 container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1">
-            <ConfigurationSidebar
-              apiKey={apiKey}
-              onApiKeySubmit={handleApiKeySubmit}
-              onReset={handleApiKeyReset}
-            />
-          </div>
-
-          <div className="md:col-span-2 space-y-8">
+          <div className="md:col-span-3 space-y-8 animate-fade-in">
             {currentPatientImages.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex gap-2 overflow-x-auto pb-4">
+                <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
                   {currentPatientImages.map((image, index) => (
-                    <img
+                    <div
                       key={index}
-                      src={URL.createObjectURL(image.file)}
-                      alt={`Patient image ${index + 1}`}
-                      className={`h-20 w-20 object-cover rounded-lg cursor-pointer border-2 ${
-                        selectedImageIndex === index ? 'border-medical-blue' : 'border-transparent'
+                      className={`relative group cursor-pointer transition-all duration-200 ${
+                        selectedImageIndex === index ? 'ring-2 ring-medical-blue' : ''
                       }`}
                       onClick={() => setSelectedImageIndex(index)}
-                    />
+                    >
+                      <img
+                        src={URL.createObjectURL(image.file)}
+                        alt={`Patient image ${index + 1}`}
+                        className="h-20 w-20 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-medical-blue/0 group-hover:bg-medical-blue/10 rounded-lg transition-all duration-200" />
+                    </div>
                   ))}
                 </div>
                 <ImageUploader
@@ -192,27 +190,27 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                 <Button
                   onClick={resetAnalysis}
-                  className="flex items-center gap-2 bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
+                  className="bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white transform transition-all duration-200 hover:scale-105"
                 >
-                  <Image className="w-4 h-4" />
+                  <Image className="mr-2 h-4 w-4" />
                   Analyze New Patient Images
                 </Button>
                 <Button
                   onClick={addAnotherImage}
-                  className="flex items-center gap-2 bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
+                  className="bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white transform transition-all duration-200 hover:scale-105"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Add Another Image
                 </Button>
                 <Button
                   onClick={toggleChat}
-                  className={`flex items-center gap-2 ${
+                  className={`transform transition-all duration-200 hover:scale-105 ${
                     showChat 
                       ? "bg-medical-blue text-white" 
                       : "bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
                   }`}
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="mr-2 h-4 w-4" />
                   {showChat ? "Hide Chat" : "Ask Follow-up Questions"}
                 </Button>
               </div>
@@ -227,7 +225,9 @@ const Index = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

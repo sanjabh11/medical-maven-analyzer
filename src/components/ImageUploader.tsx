@@ -7,9 +7,10 @@ interface ImageUploaderProps {
   onImageUpload: (file: File) => void;
   isLoading?: boolean;
   currentImage?: File;
+  onReset?: () => void;
 }
 
-const ImageUploader = ({ onImageUpload, isLoading, currentImage }: ImageUploaderProps) => {
+const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = React.useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -54,6 +55,14 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage }: ImageUploader
     onImageUpload(file);
   };
 
+  const handleReset = () => {
+    setPreviewUrl(null);
+    if (onReset) onReset();
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+  };
+
   React.useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -63,11 +72,7 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage }: ImageUploader
   }, [previewUrl]);
 
   return (
-    <Card
-      className={`w-full max-w-2xl mx-auto ${
-        dragActive ? "border-medical-blue" : ""
-      }`}
-    >
+    <Card className={`w-full max-w-2xl mx-auto ${dragActive ? "border-medical-blue" : ""}`}>
       <CardContent className="p-8">
         <div
           className="relative flex flex-col items-center justify-center space-y-4 border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -83,6 +88,16 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage }: ImageUploader
                 alt="Preview"
                 className="max-h-[400px] mx-auto object-contain rounded-lg"
               />
+              <div className="flex justify-center mt-4">
+                <Button
+                  type="button"
+                  onClick={handleReset}
+                  variant="outline"
+                  className="text-medical-blue hover:bg-medical-blue hover:text-white"
+                >
+                  Upload Different Image
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="p-8 text-center">

@@ -7,14 +7,19 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image, Plus } from "lucide-react";
 
+interface ImageAnalysis {
+  file: File;
+  results: string | null;
+}
+
 const Index = () => {
   const [apiKey, setApiKey] = React.useState<string | null>(
     localStorage.getItem("GOOGLE_API_KEY")
   );
-  const [selectedImages, setSelectedImages] = React.useState<File[]>([]);
+  const [currentPatientImages, setCurrentPatientImages] = React.useState<ImageAnalysis[]>([]);
   const [analyzing, setAnalyzing] = React.useState(false);
-  const [results, setResults] = React.useState<string | null>(null);
   const [showChat, setShowChat] = React.useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = React.useState<number>(0);
 
   const handleApiKeySubmit = (key: string) => {
     localStorage.setItem("GOOGLE_API_KEY", key);
@@ -37,16 +42,15 @@ const Index = () => {
   };
 
   const resetAnalysis = () => {
-    setSelectedImages([]);
-    setResults(null);
+    setCurrentPatientImages([]);
     setAnalyzing(false);
     setShowChat(false);
+    setSelectedImageIndex(0);
   };
 
   const addAnotherImage = () => {
-    // Keep existing images but allow adding more
     setAnalyzing(false);
-    setResults(null);
+    setSelectedImageIndex(currentPatientImages.length);
   };
 
   const toggleChat = () => {
@@ -67,7 +71,7 @@ const Index = () => {
         description: "Please configure your Google API Key first",
         variant: "destructive",
       });
-      return;
+      return null;
     }
 
     try {
@@ -112,8 +116,7 @@ const Index = () => {
       }
 
       const data = await response.json();
-      const analysis = data.candidates[0].content.parts[0].text;
-      setResults(analysis);
+      return data.candidates[0].content.parts[0].text;
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
@@ -121,16 +124,20 @@ const Index = () => {
         description: error instanceof Error ? error.message : "Failed to analyze image",
         variant: "destructive",
       });
-    } finally {
-      setAnalyzing(false);
+      return null;
     }
   };
 
   const handleImageUpload = async (file: File) => {
-    setSelectedImages(prev => [...prev, file]);
     setAnalyzing(true);
-    await analyzeImage(file);
+    const results = await analyzeImage(file);
+    if (results) {
+      setCurrentPatientImages(prev => [...prev, { file, results }]);
+    }
+    setAnalyzing(false);
   };
+
+  const currentAnalysis = currentPatientImages[selectedImageIndex];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -154,26 +161,41 @@ const Index = () => {
               </p>
             </div>
 
-            {selectedImages.map((image, index) => (
-              <div key={index} className="mb-8">
+            {currentPatientImages.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex gap-2 overflow-x-auto pb-4">
+                  {currentPatientImages.map((image, index) => (
+                    <img
+                      key={index}
+                      src={URL.createObjectURL(image.file)}
+                      alt={`Patient image ${index + 1}`}
+                      className={`h-20 w-20 object-cover rounded-lg cursor-pointer border-2 ${
+                        selectedImageIndex === index ? 'border-medical-blue' : 'border-transparent'
+                      }`}
+                      onClick={() => setSelectedImageIndex(index)}
+                    />
+                  ))}
+                </div>
                 <ImageUploader
                   onImageUpload={handleImageUpload}
                   isLoading={analyzing}
-                  currentImage={image}
+                  currentImage={currentAnalysis?.file}
+                  onReset={() => setSelectedImageIndex(currentPatientImages.length)}
                 />
               </div>
-            ))}
-
-            {selectedImages.length === 0 && (
+            ) : (
               <ImageUploader
                 onImageUpload={handleImageUpload}
                 isLoading={analyzing}
               />
             )}
 
-            <AnalysisResults loading={analyzing} results={results} />
+            <AnalysisResults 
+              loading={analyzing} 
+              results={currentAnalysis?.results || null} 
+            />
 
-            {results && (
+            {currentAnalysis?.results && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                 <Button
                   onClick={resetAnalysis}
@@ -203,8 +225,12 @@ const Index = () => {
               </div>
             )}
 
-            {showChat && results && (
-              <ChatInterface apiKey={apiKey} analysisResults={results} />
+            {showChat && currentAnalysis?.results && (
+              <ChatInterface 
+                apiKey={apiKey} 
+                analysisResults={currentAnalysis.results}
+                onImageUpload={handleImageUpload}
+              />
             )}
           </div>
         </div>

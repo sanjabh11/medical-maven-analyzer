@@ -2,6 +2,7 @@ import React from "react";
 import ConfigurationSidebar from "@/components/ConfigurationSidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
+import ChatInterface from "@/components/ChatInterface";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image } from "lucide-react";
@@ -74,13 +75,12 @@ const Index = () => {
         reader.readAsDataURL(imageFile);
       });
 
-      // Using the new experimental Gemini 2.0 Flash model
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             contents: [{
@@ -179,12 +179,8 @@ const Index = () => {
               </div>
             )}
 
-            {showChat && (
-              <div className="mt-6 p-4 bg-white rounded-lg shadow">
-                <p className="text-center text-gray-600">
-                  Chat feature coming soon! You'll be able to ask follow-up questions about your diagnosis here.
-                </p>
-              </div>
+            {showChat && results && (
+              <ChatInterface apiKey={apiKey} analysisResults={results} />
             )}
           </div>
         </div>

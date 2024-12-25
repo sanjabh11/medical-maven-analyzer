@@ -104,7 +104,7 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: Imag
               <Upload className="w-10 h-10 text-medical-blue mx-auto mb-4" />
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">
-                  Drag and drop your medical image here, or
+                  Drag and drop your medical image or blood report here for analysis, or
                 </p>
                 <Button
                   type="button"

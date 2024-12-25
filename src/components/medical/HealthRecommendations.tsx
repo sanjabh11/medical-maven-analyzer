@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dumbbell, Leaf, Scale } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
-import { Footer } from "@/components/layout/Footer";
 
 interface HealthProfile {
   age: number;
@@ -197,7 +196,6 @@ const HealthRecommendations = () => {
           )}
         </>
       )}
-      <Footer />
     </div>
   );
 };

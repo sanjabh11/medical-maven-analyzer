@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Bandage, Activity } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
-import { Footer } from "@/components/layout/Footer";
 
 const FIRST_AID_TOPICS = {
   "Minor Cuts": {
@@ -131,7 +130,6 @@ const FirstAidGuide = () => {
           )}
         </>
       )}
-      <Footer />
     </div>
   );
 };

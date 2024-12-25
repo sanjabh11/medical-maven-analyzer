@@ -6,7 +6,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Heart, Activity, Plus } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
-import { Footer } from "@/components/layout/Footer";
 
 interface VitalReading {
   date: string;
@@ -167,7 +166,6 @@ const VitalsMonitor = () => {
           )}
         </CardContent>
       </Card>
-      <Footer />
     </div>
   );
 };

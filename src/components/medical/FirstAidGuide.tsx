@@ -48,6 +48,16 @@ const FIRST_AID_TOPICS = {
   }
 };
 
+  // Create a sanitized version of the topic data without React elements
+  const getSanitizedTopicData = (topic: string) => {
+    const topicData = FIRST_AID_TOPICS[topic];
+    return {
+      steps: topicData.steps,
+      emergency: topicData.emergency,
+      topic: topic
+    };
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <FeatureDescription
@@ -126,7 +136,7 @@ const FIRST_AID_TOPICS = {
           {showChat && (
             <ChatInterface 
               apiKey={apiKey} 
-              analysisResults={JSON.stringify(FIRST_AID_TOPICS[selectedTopic])}
+              analysisResults={JSON.stringify(getSanitizedTopicData(selectedTopic))}
             />
           )}
         </>

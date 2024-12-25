@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import FilePreview from "./upload/FilePreview";
+import UploadZone from "./upload/UploadZone";
 
 interface ImageUploaderProps {
   onImageUpload: (file: File) => void;
@@ -10,13 +10,13 @@ interface ImageUploaderProps {
   onReset?: () => void;
 }
 
-const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: ImageUploaderProps) => {
+const ImageUploader = ({ onImageUpload, isLoading = false, currentImage, onReset }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = React.useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (currentImage) {
+    if (currentImage && currentImage.type.startsWith('image/')) {
       const url = URL.createObjectURL(currentImage);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
@@ -50,8 +50,10 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: Imag
   };
 
   const handleFile = (file: File) => {
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
     onImageUpload(file);
   };
 
@@ -73,7 +75,7 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: Imag
 
   return (
     <Card className={`w-full max-w-2xl mx-auto ${dragActive ? "border-medical-blue" : ""}`}>
-      <CardContent className="p-8">
+      <CardContent className="p-4 sm:p-8">
         <div
           className="relative flex flex-col items-center justify-center space-y-4 border-2 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           onDragEnter={handleDrag}
@@ -81,53 +83,29 @@ const ImageUploader = ({ onImageUpload, isLoading, currentImage, onReset }: Imag
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          {previewUrl ? (
-            <div className="w-full p-4">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-h-[400px] mx-auto object-contain rounded-lg"
-              />
-              <div className="flex justify-center mt-4">
-                <Button
-                  type="button"
-                  onClick={handleReset}
-                  variant="outline"
-                  className="text-medical-blue hover:bg-medical-blue hover:text-white"
-                >
-                  Upload Different Image
-                </Button>
-              </div>
-            </div>
+          {currentImage ? (
+            <FilePreview
+              file={currentImage}
+              previewUrl={previewUrl}
+              onReset={handleReset}
+            />
           ) : (
-            <div className="p-8 text-center">
-              <Upload className="w-10 h-10 text-medical-blue mx-auto mb-4" />
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">
-                  Drag and drop your medical image or blood report here for analysis, or
-                </p>
-                <Button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => inputRef.current?.click()}
-                  className="bg-medical-blue hover:bg-medical-blue/90"
-                >
-                  Choose File
-                </Button>
-              </div>
-            </div>
+            <UploadZone
+              isLoading={isLoading}
+              onClick={() => inputRef.current?.click()}
+            />
           )}
           <input
             ref={inputRef}
             type="file"
             className="hidden"
-            accept="image/*"
+            accept="image/*,.pdf,.doc,.docx"
             onChange={handleChange}
             disabled={isLoading}
           />
         </div>
         <p className="text-xs text-center text-gray-500 mt-4">
-          Supported formats: JPG, JPEG, PNG, DICOM
+          Supported formats: JPG, JPEG, PNG, DICOM, PDF, DOC, DOCX
         </p>
       </CardContent>
     </Card>

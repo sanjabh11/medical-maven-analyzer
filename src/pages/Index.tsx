@@ -1,8 +1,8 @@
 import React from "react";
+import { Sidebar } from "@/components/layout/Sidebar";
 import ImageUploader from "@/components/ImageUploader";
 import AnalysisResults from "@/components/AnalysisResults";
 import ChatInterface from "@/components/ChatInterface";
-import HeroSection from "@/components/medical/HeroSection";
 import SymptomChecker from "@/components/medical/SymptomChecker";
 import MentalWellbeing from "@/components/medical/MentalWellbeing";
 import HealthRecommendations from "@/components/medical/HealthRecommendations";
@@ -12,7 +12,6 @@ import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Image, Plus } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ImageAnalysis {
   file: File;
@@ -25,6 +24,7 @@ const Index = () => {
   const [analyzing, setAnalyzing] = React.useState(false);
   const [showChat, setShowChat] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number>(0);
+  const [currentTab, setCurrentTab] = React.useState("image-analysis");
 
   const handleImageUpload = async (file: File) => {
     setAnalyzing(true);
@@ -96,22 +96,11 @@ const Index = () => {
 
   const currentAnalysis = currentPatientImages[selectedImageIndex];
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white">
-      <HeroSection />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <Tabs defaultValue="image-analysis" className="w-full">
-          <TabsList className="grid grid-cols-3 lg:grid-cols-6 mb-8">
-            <TabsTrigger value="image-analysis">Image Analysis</TabsTrigger>
-            <TabsTrigger value="symptoms">Symptom Checker</TabsTrigger>
-            <TabsTrigger value="mental">Mental Well-being</TabsTrigger>
-            <TabsTrigger value="health">Health Recommendations</TabsTrigger>
-            <TabsTrigger value="first-aid">First Aid</TabsTrigger>
-            <TabsTrigger value="vitals">Vitals Monitor</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="image-analysis" className="space-y-8 animate-fade-in">
+  const renderContent = () => {
+    switch (currentTab) {
+      case "image-analysis":
+        return (
+          <div className="space-y-8 animate-fade-in">
             {currentPatientImages.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
@@ -160,7 +149,7 @@ const Index = () => {
                       setShowChat(false);
                       setSelectedImageIndex(0);
                     }}
-                    className="bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white transform transition-all duration-200 hover:scale-105"
+                    className="bg-gray-800 text-white hover:bg-gray-700 transform transition-all duration-200 hover:scale-105"
                   >
                     <Image className="mr-2 h-4 w-4" />
                     Analyze New Patient Images
@@ -170,7 +159,7 @@ const Index = () => {
                       setAnalyzing(false);
                       setSelectedImageIndex(currentPatientImages.length);
                     }}
-                    className="bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white transform transition-all duration-200 hover:scale-105"
+                    className="bg-gray-800 text-white hover:bg-gray-700 transform transition-all duration-200 hover:scale-105"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Another Image
@@ -188,8 +177,8 @@ const Index = () => {
                     }}
                     className={`transform transition-all duration-200 hover:scale-105 ${
                       showChat 
-                        ? "bg-medical-blue text-white" 
-                        : "bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
+                        ? "bg-gray-700 text-white" 
+                        : "bg-gray-800 text-white hover:bg-gray-700"
                     }`}
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
@@ -206,31 +195,32 @@ const Index = () => {
                 )}
               </>
             )}
-          </TabsContent>
+          </div>
+        );
+      case "symptoms":
+        return <SymptomChecker apiKey={apiKey} />;
+      case "mental":
+        return <MentalWellbeing />;
+      case "health":
+        return <HealthRecommendations />;
+      case "first-aid":
+        return <FirstAidGuide />;
+      case "vitals":
+        return <VitalsMonitor />;
+      default:
+        return null;
+    }
+  };
 
-          <TabsContent value="symptoms">
-            <SymptomChecker apiKey={apiKey} />
-          </TabsContent>
-
-          <TabsContent value="mental">
-            <MentalWellbeing />
-          </TabsContent>
-
-          <TabsContent value="health">
-            <HealthRecommendations />
-          </TabsContent>
-
-          <TabsContent value="first-aid">
-            <FirstAidGuide />
-          </TabsContent>
-
-          <TabsContent value="vitals">
-            <VitalsMonitor />
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      <Footer />
+  return (
+    <div className="flex min-h-screen bg-gray-950">
+      <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
+      <div className="flex-1 p-8 overflow-y-auto">
+        <main className="max-w-4xl mx-auto">
+          {renderContent()}
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };

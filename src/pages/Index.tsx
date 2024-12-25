@@ -19,6 +19,8 @@ interface ImageAnalysis {
   results: string | null;
 }
 
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
+
 const Index = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [currentPatientImages, setCurrentPatientImages] = useState<ImageAnalysis[]>([]);
@@ -35,13 +37,46 @@ const Index = () => {
     fetchApiKey();
   }, []);
 
-  const handleImageUpload = async (file: File) => {
-    setAnalyzing(true);
-    const results = await analyzeImage(file);
-    if (results) {
-      setCurrentPatientImages(prev => [...prev, { file, results }]);
-    }
-    setAnalyzing(false);
+  const compressImage = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 1024;
+
+          if (width > height && width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get the compressed image data
+          const compressedData = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(compressedData.split(',')[1]);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+    });
   };
 
   const analyzeImage = async (imageFile: File) => {
@@ -55,17 +90,21 @@ const Index = () => {
     }
 
     try {
-      const base64Image = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          resolve(base64.split(',')[1]);
-        };
-        reader.readAsDataURL(imageFile);
-      });
+      if (!imageFile.type.startsWith('image/')) {
+        throw new Error('Please upload an image file');
+      }
+
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        toast({
+          title: "Warning",
+          description: "Image size is large, compressing...",
+        });
+      }
+
+      const base64Image = await compressImage(imageFile);
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -80,7 +119,7 @@ const Index = () => {
                   Be thorough and specific in your analysis.`
               }, {
                 inline_data: {
-                  mime_type: "image/jpeg",
+                  mime_type: imageFile.type,
                   data: base64Image
                 }
               }]
@@ -89,7 +128,11 @@ const Index = () => {
         }
       );
 
-      if (!response.ok) throw new Error(`API request failed: ${response.statusText}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to analyze image');
+      }
+
       const data = await response.json();
       return data.candidates[0].content.parts[0].text;
     } catch (error) {
@@ -103,7 +146,14 @@ const Index = () => {
     }
   };
 
-  const currentAnalysis = currentPatientImages[selectedImageIndex];
+  const handleImageUpload = async (file: File) => {
+    setAnalyzing(true);
+    const results = await analyzeImage(file);
+    if (results) {
+      setCurrentPatientImages(prev => [...prev, { file, results }]);
+    }
+    setAnalyzing(false);
+  };
 
   const renderContent = () => {
     switch (currentTab) {
@@ -133,7 +183,7 @@ const Index = () => {
                 <ImageUploader
                   onImageUpload={handleImageUpload}
                   isLoading={analyzing}
-                  currentImage={currentAnalysis?.file}
+                  currentImage={currentPatientImages[selectedImageIndex]?.file}
                 />
               </div>
             ) : (
@@ -145,10 +195,10 @@ const Index = () => {
 
             <AnalysisResults 
               loading={analyzing} 
-              results={currentAnalysis?.results || null} 
+              results={currentPatientImages[selectedImageIndex]?.results || null} 
             />
 
-            {currentAnalysis?.results && (
+            {currentPatientImages[selectedImageIndex]?.results && (
               <>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                   <Button
@@ -198,7 +248,7 @@ const Index = () => {
                 {showChat && (
                   <ChatInterface 
                     apiKey={apiKey} 
-                    analysisResults={currentAnalysis.results}
+                    analysisResults={currentPatientImages[selectedImageIndex].results}
                     onImageUpload={handleImageUpload}
                   />
                 )}

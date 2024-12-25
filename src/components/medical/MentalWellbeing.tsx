@@ -24,6 +24,7 @@ const MentalWellbeing = () => {
   const [showResults, setShowResults] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [assessment, setAssessment] = useState<string | null>(null);
+  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
 
   const handleAnswer = (questionIndex: number, value: number) => {
     setAnswers(prev => ({ ...prev, [questionIndex]: value }));
@@ -135,7 +136,7 @@ const MentalWellbeing = () => {
 
           {showChat && (
             <ChatInterface 
-              apiKey={null} 
+              apiKey={apiKey} 
               analysisResults={assessment}
             />
           )}

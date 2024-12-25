@@ -7,6 +7,11 @@ import { Heart, Bandage, Activity } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
 
+const FirstAidGuide = () => {
+  const [selectedTopic, setSelectedTopic] = useState("Minor Cuts");
+  const [showChat, setShowChat] = useState(false);
+  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
+
 const FIRST_AID_TOPICS = {
   "Minor Cuts": {
     steps: [
@@ -42,10 +47,6 @@ const FIRST_AID_TOPICS = {
     icon: <Activity className="h-5 w-5" />
   }
 };
-
-const FirstAidGuide = () => {
-  const [selectedTopic, setSelectedTopic] = useState("Minor Cuts");
-  const [showChat, setShowChat] = useState(false);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -124,7 +125,7 @@ const FirstAidGuide = () => {
 
           {showChat && (
             <ChatInterface 
-              apiKey={null} 
+              apiKey={apiKey} 
               analysisResults={JSON.stringify(FIRST_AID_TOPICS[selectedTopic])}
             />
           )}

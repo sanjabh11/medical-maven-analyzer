@@ -20,6 +20,7 @@ const VitalsMonitor = () => {
   const [diastolic, setDiastolic] = useState("");
   const [heartRate, setHeartRate] = useState("");
   const [showChat, setShowChat] = useState(false);
+  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
 
   const addReading = () => {
     const newReading = {
@@ -158,7 +159,7 @@ const VitalsMonitor = () => {
 
               {showChat && (
                 <ChatInterface 
-                  apiKey={null} 
+                  apiKey={apiKey} 
                   analysisResults={JSON.stringify(readings)}
                 />
               )}

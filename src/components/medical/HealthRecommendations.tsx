@@ -29,6 +29,7 @@ const HealthRecommendations = () => {
     exercise: string;
   } | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
 
   const calculateBMI = () => {
     return profile.weight / Math.pow(profile.height / 100, 2);
@@ -190,7 +191,7 @@ const HealthRecommendations = () => {
 
           {showChat && (
             <ChatInterface 
-              apiKey={null} 
+              apiKey={apiKey} 
               analysisResults={JSON.stringify(recommendations)}
             />
           )}

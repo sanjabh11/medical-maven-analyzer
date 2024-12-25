@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Brain, Heart, SmilePlus } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
+import { Footer } from "@/components/layout/Footer";
 
 const PHQ9_QUESTIONS = [
   "Little interest or pleasure in doing things?",

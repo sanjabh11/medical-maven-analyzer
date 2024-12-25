@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Heart, Activity, Plus } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
-import { Footer } from "@/components/layout/Footer";
+</lov-replace>
+<lov-search>
+      <Footer />
+    </div>
+</lov-search>
+<lov-replace>
+    </div>
 import FeatureDescription from "./FeatureDescription";
 
 interface VitalReading {

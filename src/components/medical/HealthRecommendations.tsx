@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dumbbell, Leaf, Scale } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
-import { Footer } from "@/components/layout/Footer";
+</lov-replace>
+<lov-search>
+      <Footer />
+    </div>
+</lov-search>
+<lov-replace>
+    </div>
 import FeatureDescription from "./FeatureDescription";
 
 interface HealthProfile {

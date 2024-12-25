@@ -1,4 +1,3 @@
-<lov-code>
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -161,4 +160,23 @@ const HealthRecommendations = () => {
                   <Leaf className="h-5 w-5 text-medical-blue mt-1" />
                   <div>
                     <h4 className="font-medium">Diet Recommendations</h4>
-                    <p className="text-gray-700">{
+                    <p className="text-gray-700">{recommendations.diet}</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Dumbbell className="h-5 w-5 text-medical-blue mt-1" />
+                  <div>
+                    <h4 className="font-medium">Exercise Recommendations</h4>
+                    <p className="text-gray-700">{recommendations.exercise}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default HealthRecommendations;

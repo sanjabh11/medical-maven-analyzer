@@ -22,9 +22,8 @@ interface ImageAnalysisProps {
   onReset: () => void;
   onAddImage: () => void;
   onToggleChat: () => void;
+  onSelectImage: (index: number) => void;
 }
-
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
   apiKey,
@@ -36,6 +35,7 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
   onReset,
   onAddImage,
   onToggleChat,
+  onSelectImage,
 }) => {
   return (
     <div className="space-y-8 animate-fade-in">
@@ -48,7 +48,7 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
                 className={`relative group cursor-pointer transition-all duration-200 ${
                   selectedImageIndex === index ? 'ring-2 ring-medical-blue' : ''
                 }`}
-                onClick={() => setSelectedImageIndex(index)}
+                onClick={() => onSelectImage(index)}
               >
                 <img
                   src={URL.createObjectURL(image.file)}

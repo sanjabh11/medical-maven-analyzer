@@ -5,12 +5,15 @@ import AnalysisResults from "@/components/AnalysisResults";
 import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  const [apiKey, setApiKey] = React.useState<string | null>(null);
+  const [apiKey, setApiKey] = React.useState<string | null>(
+    localStorage.getItem("GOOGLE_API_KEY")
+  );
   const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
   const [analyzing, setAnalyzing] = React.useState(false);
   const [results, setResults] = React.useState<string | null>(null);
 
   const handleApiKeySubmit = (key: string) => {
+    localStorage.setItem("GOOGLE_API_KEY", key);
     setApiKey(key);
     toast({
       title: "Success",
@@ -20,6 +23,7 @@ const Index = () => {
   };
 
   const handleApiKeyReset = () => {
+    localStorage.removeItem("GOOGLE_API_KEY");
     setApiKey(null);
     toast({
       title: "Reset",
@@ -28,39 +32,76 @@ const Index = () => {
     });
   };
 
-  const handleImageUpload = (file: File) => {
-    setSelectedImage(file);
-    // In a real implementation, you would process the image here
-    setAnalyzing(true);
-    setTimeout(() => {
-      setAnalyzing(false);
-      setResults(`
-        <h3>1. Image Type & Region</h3>
-        <ul>
-          <li>Imaging modality: X-ray</li>
-          <li>Anatomical region: Chest, PA view</li>
-          <li>Image quality: Optimal for diagnosis</li>
-        </ul>
-        
-        <h3>2. Key Findings</h3>
-        <ul>
-          <li>Clear lung fields</li>
-          <li>Normal cardiac silhouette</li>
-          <li>No active disease process identified</li>
-        </ul>
-        
-        <h3>3. Diagnostic Assessment</h3>
-        <p>Normal chest radiograph with no acute cardiopulmonary process.</p>
-        
-        <h3>4. Patient-Friendly Explanation</h3>
-        <p>Your chest X-ray shows healthy lungs and a normal heart size. There are no concerning findings that require immediate attention.</p>
-      `);
+  const analyzeImage = async (imageFile: File) => {
+    if (!apiKey) {
       toast({
-        title: "Analysis Complete",
-        description: "Your medical image has been analyzed successfully.",
-        duration: 5000,
+        title: "Error",
+        description: "Please configure your Google API Key first",
+        variant: "destructive",
       });
-    }, 3000);
+      return;
+    }
+
+    try {
+      // Convert image to base64
+      const base64Image = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          resolve(base64.split(',')[1]); // Remove data URL prefix
+        };
+        reader.readAsDataURL(imageFile);
+      });
+
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Analyze this medical image and provide a detailed report including:
+                1. Image Type & Region
+                2. Key Findings
+                3. Diagnostic Assessment
+                4. Patient-Friendly Explanation
+                Be thorough and specific in your analysis.`
+            }, {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image
+              }
+            }]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const analysis = data.candidates[0].content.parts[0].text;
+      
+      setResults(analysis);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to analyze image",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setSelectedImage(file);
+    setAnalyzing(true);
+    await analyzeImage(file);
   };
 
   return (

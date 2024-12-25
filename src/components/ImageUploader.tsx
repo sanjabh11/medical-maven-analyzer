@@ -6,12 +6,21 @@ import { Upload } from "lucide-react";
 interface ImageUploaderProps {
   onImageUpload: (file: File) => void;
   isLoading?: boolean;
+  currentImage?: File;
 }
 
-const ImageUploader = ({ onImageUpload, isLoading }: ImageUploaderProps) => {
+const ImageUploader = ({ onImageUpload, isLoading, currentImage }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = React.useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (currentImage) {
+      const url = URL.createObjectURL(currentImage);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [currentImage]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -40,14 +49,12 @@ const ImageUploader = ({ onImageUpload, isLoading }: ImageUploaderProps) => {
   };
 
   const handleFile = (file: File) => {
-    // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     onImageUpload(file);
   };
 
   React.useEffect(() => {
-    // Cleanup preview URL when component unmounts
     return () => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);

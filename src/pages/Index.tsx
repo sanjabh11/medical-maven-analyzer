@@ -5,13 +5,13 @@ import AnalysisResults from "@/components/AnalysisResults";
 import ChatInterface from "@/components/ChatInterface";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Image } from "lucide-react";
+import { MessageSquare, Image, Plus } from "lucide-react";
 
 const Index = () => {
   const [apiKey, setApiKey] = React.useState<string | null>(
     localStorage.getItem("GOOGLE_API_KEY")
   );
-  const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
+  const [selectedImages, setSelectedImages] = React.useState<File[]>([]);
   const [analyzing, setAnalyzing] = React.useState(false);
   const [results, setResults] = React.useState<string | null>(null);
   const [showChat, setShowChat] = React.useState(false);
@@ -37,10 +37,16 @@ const Index = () => {
   };
 
   const resetAnalysis = () => {
-    setSelectedImage(null);
+    setSelectedImages([]);
     setResults(null);
     setAnalyzing(false);
     setShowChat(false);
+  };
+
+  const addAnotherImage = () => {
+    // Keep existing images but allow adding more
+    setAnalyzing(false);
+    setResults(null);
   };
 
   const toggleChat = () => {
@@ -65,12 +71,11 @@ const Index = () => {
     }
 
     try {
-      // Convert image to base64
       const base64Image = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = reader.result as string;
-          resolve(base64.split(',')[1]); // Remove data URL prefix
+          resolve(base64.split(',')[1]);
         };
         reader.readAsDataURL(imageFile);
       });
@@ -103,13 +108,11 @@ const Index = () => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `API request failed: ${response.statusText}`);
+        throw new Error(`API request failed: ${response.statusText}`);
       }
 
       const data = await response.json();
       const analysis = data.candidates[0].content.parts[0].text;
-      
       setResults(analysis);
     } catch (error) {
       console.error('Analysis error:', error);
@@ -124,7 +127,7 @@ const Index = () => {
   };
 
   const handleImageUpload = async (file: File) => {
-    setSelectedImage(file);
+    setSelectedImages(prev => [...prev, file]);
     setAnalyzing(true);
     await analyzeImage(file);
   };
@@ -147,14 +150,26 @@ const Index = () => {
                 🏥 Medical Imaging Diagnosis Agent
               </h1>
               <p className="text-gray-600">
-                Upload a medical image for professional AI-powered analysis
+                Upload medical images for professional AI-powered analysis
               </p>
             </div>
 
-            <ImageUploader
-              onImageUpload={handleImageUpload}
-              isLoading={analyzing}
-            />
+            {selectedImages.map((image, index) => (
+              <div key={index} className="mb-8">
+                <ImageUploader
+                  onImageUpload={handleImageUpload}
+                  isLoading={analyzing}
+                  currentImage={image}
+                />
+              </div>
+            ))}
+
+            {selectedImages.length === 0 && (
+              <ImageUploader
+                onImageUpload={handleImageUpload}
+                isLoading={analyzing}
+              />
+            )}
 
             <AnalysisResults loading={analyzing} results={results} />
 
@@ -162,16 +177,25 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                 <Button
                   onClick={resetAnalysis}
-                  className="flex items-center gap-2"
-                  variant="outline"
+                  className="flex items-center gap-2 bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
                 >
                   <Image className="w-4 h-4" />
-                  Analyze Another Image
+                  Analyze New Patient Images
+                </Button>
+                <Button
+                  onClick={addAnotherImage}
+                  className="flex items-center gap-2 bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Another Image
                 </Button>
                 <Button
                   onClick={toggleChat}
-                  className="flex items-center gap-2"
-                  variant={showChat ? "secondary" : "outline"}
+                  className={`flex items-center gap-2 ${
+                    showChat 
+                      ? "bg-medical-blue text-white" 
+                      : "bg-medical-light text-medical-blue hover:bg-medical-blue hover:text-white"
+                  }`}
                 >
                   <MessageSquare className="w-4 h-4" />
                   {showChat ? "Hide Chat" : "Ask Follow-up Questions"}

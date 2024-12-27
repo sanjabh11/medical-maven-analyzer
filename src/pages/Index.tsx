@@ -32,7 +32,7 @@ const Index = () => {
     fetchApiKey();
   }, []);
 
-  const analyzeImage = async (imageFile: File) => {
+  const analyzeImage = async (file: File) => {
     if (!apiKey) {
       toast({
         title: "Error",
@@ -43,11 +43,20 @@ const Index = () => {
     }
 
     try {
-      if (!imageFile.type.startsWith('image/')) {
-        throw new Error('Please upload an image file');
+      // Check if the file is an image or a PDF
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        throw new Error('Please upload an image or PDF file');
       }
 
-      const base64Image = await compressImage(imageFile);
+      let base64Data;
+      if (file.type.startsWith('image/')) {
+        base64Data = await compressImage(file); // Compress image if it's an image file
+      } else {
+        // Handle PDF file
+        base64Data = await convertPdfToBase64(file); // Convert PDF to base64
+        // Remove the prefix if it exists
+        base64Data = base64Data.split(',')[1]; // This removes the "data:application/pdf;base64," part
+      }
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -57,26 +66,21 @@ const Index = () => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Analyze this medical image and provide a detailed report in the following format:
-                  1. Image Type & Region
-                  2. Key Findings
-                  3. Diagnostic Assessment
-                  4. Patient-Friendly Explanation
-                  Be thorough and specific in your analysis.`
+                text: `Analyze this document and provide a detailed report.`,
               }, {
                 inline_data: {
-                  mime_type: imageFile.type,
-                  data: base64Image
-                }
-              }]
-            }]
-          })
+                  mime_type: file.type,
+                  data: base64Data, // Send the cleaned base64 data
+                },
+              }],
+            }],
+          }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to analyze image');
+        throw new Error(errorData.error?.message || 'Failed to analyze document');
       }
 
       const data = await response.json();
@@ -85,11 +89,25 @@ const Index = () => {
       console.error('Analysis error:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to analyze image",
+        description: error instanceof Error ? error.message : "Failed to analyze document",
         variant: "destructive",
       });
       return null;
     }
+  };
+
+  // Function to convert PDF to base64
+  const convertPdfToBase64 = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = (error) => {
+        reject(new Error('Failed to read PDF file'));
+      };
+    });
   };
 
   const handleImageUpload = async (file: File) => {

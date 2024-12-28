@@ -19,12 +19,11 @@ const PHQ9_QUESTIONS = [
   "Thoughts of self-harm?"
 ];
 
-const MentalWellbeing = () => {
+const MentalWellbeing = ({ apiKey, showChat }: MentalWellbeingProps) => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  const [showChatInterface, setShowChatInterface] = useState(false);
   const [assessment, setAssessment] = useState<string | null>(null);
-  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
 
   const handleAnswer = (questionIndex: number, value: number) => {
     setAnswers(prev => ({ ...prev, [questionIndex]: value }));
@@ -123,25 +122,15 @@ const MentalWellbeing = () => {
         </CardContent>
       </Card>
 
-      {assessment && (
-        <>
-          <div className="flex justify-center mt-6">
-            <Button
-              onClick={() => setShowChat(!showChat)}
-              className="bg-medical-blue hover:bg-medical-blue/90"
-            >
-              {showChat ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
-            </Button>
-          </div>
-
-          {showChat && (
-            <ChatInterface 
-              apiKey={apiKey} 
-              analysisResults={assessment}
-            />
-          )}
-        </>
-      )}
+      <div className="flex justify-center mt-6">
+        <Button
+          onClick={() => setShowChatInterface(!showChatInterface)}
+          className="bg-medical-blue hover:bg-medical-blue/90"
+        >
+          {showChatInterface ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
+        </Button>
+      </div>
+      {showChatInterface && <ChatInterface apiKey={apiKey} analysisResults={assessment} />}
     </div>
   );
 };

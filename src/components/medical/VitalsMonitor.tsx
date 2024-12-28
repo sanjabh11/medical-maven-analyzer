@@ -14,13 +14,12 @@ interface VitalReading {
   heartRate: number;
 }
 
-const VitalsMonitor = () => {
+const VitalsMonitor = ({ apiKey, showChat }: VitalsMonitorProps) => {
   const [readings, setReadings] = useState<VitalReading[]>([]);
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [heartRate, setHeartRate] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
+  const [showChatInterface, setShowChatInterface] = useState(false);
 
   const addReading = () => {
     const newReading = {
@@ -146,24 +145,20 @@ const VitalsMonitor = () => {
             </div>
           )}
 
-          {readings.length > 0 && (
-            <>
-              <div className="flex justify-center mt-6">
-                <Button
-                  onClick={() => setShowChat(!showChat)}
-                  className="bg-medical-blue hover:bg-medical-blue/90"
-                >
-                  {showChat ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
-                </Button>
-              </div>
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={() => setShowChatInterface(!showChatInterface)}
+              className="bg-medical-blue hover:bg-medical-blue/90"
+            >
+              {showChatInterface ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
+            </Button>
+          </div>
 
-              {showChat && (
-                <ChatInterface 
-                  apiKey={apiKey} 
-                  analysisResults={JSON.stringify(readings)}
-                />
-              )}
-            </>
+          {showChatInterface && (
+            <ChatInterface 
+              apiKey={apiKey} 
+              analysisResults={JSON.stringify(readings)}
+            />
           )}
         </CardContent>
       </Card>

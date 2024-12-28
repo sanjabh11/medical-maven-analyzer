@@ -7,10 +7,9 @@ import { Heart, Bandage, Activity } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import FeatureDescription from "./FeatureDescription";
 
-const FirstAidGuide = () => {
+const FirstAidGuide = ({ apiKey, showChat }: FirstAidGuideProps) => {
   const [selectedTopic, setSelectedTopic] = useState("Minor Cuts");
-  const [showChat, setShowChat] = useState(false);
-  const [apiKey] = React.useState<string | null>(localStorage.getItem("GOOGLE_API_KEY"));
+  const [showChatInterface, setShowChatInterface] = useState(false);
 
 const FIRST_AID_TOPICS = {
   "Minor Cuts": {
@@ -122,24 +121,20 @@ const FIRST_AID_TOPICS = {
         </CardContent>
       </Card>
 
-      {selectedTopic && (
-        <>
-          <div className="flex justify-center mt-6">
-            <Button
-              onClick={() => setShowChat(!showChat)}
-              className="bg-medical-blue hover:bg-medical-blue/90"
-            >
-              {showChat ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
-            </Button>
-          </div>
+      <div className="flex justify-center mt-6">
+        <Button
+          onClick={() => setShowChatInterface(!showChatInterface)}
+          className="bg-medical-blue hover:bg-medical-blue/90"
+        >
+          {showChatInterface ? "Hide Follow-up Questions" : "Ask Follow-up Questions"}
+        </Button>
+      </div>
 
-          {showChat && (
-            <ChatInterface 
-              apiKey={apiKey} 
-              analysisResults={JSON.stringify(getSanitizedTopicData(selectedTopic))}
-            />
-          )}
-        </>
+      {showChatInterface && (
+        <ChatInterface 
+          apiKey={apiKey} 
+          analysisResults={JSON.stringify(getSanitizedTopicData(selectedTopic))}
+        />
       )}
     </div>
   );

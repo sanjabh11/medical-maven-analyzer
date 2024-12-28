@@ -164,15 +164,15 @@ const Index = () => {
           />
         );
       case "symptoms":
-        return <SymptomChecker apiKey={apiKey} />;
+        return <SymptomChecker apiKey={apiKey} showChat={showChat} />;
       case "mental":
-        return <MentalWellbeing />;
+        return <MentalWellbeing apiKey={apiKey} showChat={showChat} />;
       case "health":
-        return <HealthRecommendations />;
+        return <HealthRecommendations apiKey={apiKey} showChat={showChat} />;
       case "first-aid":
-        return <FirstAidGuide />;
+        return <FirstAidGuide apiKey={apiKey} showChat={showChat} />;
       case "vitals":
-        return <VitalsMonitor />;
+        return <VitalsMonitor apiKey={apiKey} showChat={showChat} />;
       default:
         return null;
     }

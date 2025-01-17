@@ -43,19 +43,35 @@ const Index = () => {
     }
 
     try {
-      // Check if the file is an image or a PDF
-      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-        throw new Error('Please upload an image or PDF file');
+      // Check if the file is an image, DICOM, or PDF
+      const isDicom = file.name.toLowerCase().endsWith('.dcm') || file.type === 'application/dicom';
+      if (!file.type.startsWith('image/') && !isDicom && file.type !== 'application/pdf') {
+        throw new Error('Please upload an image, DICOM, or PDF file');
       }
 
       let base64Data;
-      if (file.type.startsWith('image/')) {
+      if (isDicom) {
+        // For DICOM files, send directly to the server
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch('http://localhost:3001/api/analyze-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to analyze DICOM file');
+        }
+        
+        const data = await response.json();
+        return data.findings?.extractedText || 'No findings available';
+      } else if (file.type.startsWith('image/')) {
         base64Data = await compressImage(file); // Compress image if it's an image file
       } else {
         // Handle PDF file
-        base64Data = await convertPdfToBase64(file); // Convert PDF to base64
-        // Remove the prefix if it exists
-        base64Data = base64Data.split(',')[1]; // This removes the "data:application/pdf;base64," part
+        base64Data = await convertPdfToBase64(file);
+        base64Data = base64Data.split(',')[1];
       }
 
       const response = await fetch(
@@ -70,7 +86,7 @@ const Index = () => {
               }, {
                 inline_data: {
                   mime_type: file.type,
-                  data: base64Data, // Send the cleaned base64 data
+                  data: base64Data,
                 },
               }],
             }],

@@ -12,6 +12,7 @@ const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
+    console.log('[Server] Received file:', file.originalname, file.mimetype);
     const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'application/dicom'];
     const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.dcm'];
     
@@ -28,7 +29,12 @@ const upload = multer({
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:8080', 'http://localhost:8081'],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 const visionClient = new ImageAnnotatorClient({
@@ -263,10 +269,15 @@ interface AnalysisResponse {
 // Update the analyze-image endpoint
 app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
   try {
+    console.log('[Server] Received image analysis request');
+    
     if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
+      console.error('[Server] No file uploaded');
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    console.log(`[Server] Processing ${req.file.mimetype} file of size ${req.file.size} bytes`);
+    
     let imageBuffer = req.file.buffer;
     let metadata = null;
     let qualityIssues: string[] = [];
@@ -277,12 +288,12 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
                    (imageBuffer.length > 132 && imageBuffer.toString('ascii', 128, 132) === 'DICM');
 
     if (isDicom) {
-      console.log('Processing DICOM file...');
+      console.log('[Server] Processing DICOM file...');
       try {
         const dicomResult = await processDicomImage(imageBuffer);
         imageBuffer = dicomResult.imageBuffer;
         metadata = dicomResult.metadata;
-        console.log('DICOM metadata:', metadata);
+        console.log('[Server] Extracted DICOM metadata:', metadata);
       } catch (dicomError) {
         console.error('DICOM processing error:', dicomError);
         return res.status(400).json({ 
@@ -350,6 +361,7 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
         })
       };
 
+      console.log('[Server] Analysis completed successfully');
       res.json(response);
     } catch (error) {
       console.error('Analysis error:', error);
@@ -367,5 +379,5 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`[Server] Running on port ${PORT}`);
 });

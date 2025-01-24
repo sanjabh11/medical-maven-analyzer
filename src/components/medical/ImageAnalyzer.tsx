@@ -54,9 +54,10 @@ export function ImageAnalyzer() {
   const [selectedTab, setSelectedTab] = useState('analysis');
   const [showEducationalContent, setShowEducationalContent] = useState(false);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('[Frontend] Selected file:', file.name, file.type);
       const ext = file.name.toLowerCase().split('.').pop();
       setSelectedFile(file);
       
@@ -72,59 +73,39 @@ export function ImageAnalyzer() {
       setEnhancedPreviewUrl(null);
       setAnalysisResult(null);
       setError(null);
-    }
-  };
 
-  const analyzeImage = async () => {
-    if (!selectedFile) return;
+      // Automatically start analysis
+      try {
+        setIsAnalyzing(true);
+        console.log('[Frontend] Starting image analysis');
+        
+        const formData = new FormData();
+        formData.append('image', file);
 
-    setIsAnalyzing(true);
-    setError(null);
+        const response = await axios.post(`${API_URL}/analyze-image`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
 
-    try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
+        console.log('[Frontend] Analysis completed:', response.data);
+        
+        // Handle DICOM files differently
+        const isDicom = file.name.toLowerCase().endsWith('.dcm') || file.type === 'application/dicom';
+        if (response.data.enhancedImage) {
+          const enhancedImageUrl = isDicom 
+            ? `data:image/jpeg;base64,${response.data.enhancedImage}`
+            : `data:${file.type};base64,${response.data.enhancedImage}`;
+          setEnhancedPreviewUrl(enhancedImageUrl);
+        }
 
-      const response = await axios.post(`${API_URL}/analyze-image`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      // Handle DICOM files differently
-      const isDicom = selectedFile.name.toLowerCase().endsWith('.dcm') || selectedFile.type === 'application/dicom';
-      const enhancedImageUrl = isDicom 
-        ? `data:image/jpeg;base64,${response.data.enhancedImage}`
-        : `data:${selectedFile.type};base64,${response.data.enhancedImage}`;
-      
-      setEnhancedPreviewUrl(enhancedImageUrl);
-
-      // Format the analysis result
-      setAnalysisResult({
-        findings: {
-          extractedText: response.data.annotations?.[0]?.description || 'No text found',
-        },
-        searchResults: response.data.searchResults || [],
-        confidence: (response.data.confidence || 0) * 100,
-        qualityMetrics: {
-          brightness: response.data.originalQuality?.brightness || 0,
-          contrast: response.data.originalQuality?.contrast || 0,
-          sharpness: response.data.originalQuality?.sharpness || 0,
-          noise: response.data.originalQuality?.noise || 0,
-        },
-        qualityIssues: response.data.qualityIssues || [],
-        recommendations: response.data.recommendations || [],
-        metadata: isDicom ? response.data.metadata : null
-      });
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      if (axios.isAxiosError(error) && error.response?.data?.error) {
-        setError(error.response.data.error);
-      } else {
-        setError('Failed to analyze image. Please try again.');
+        setAnalysisResult(response.data);
+      } catch (error) {
+        console.error('[Frontend] Analysis error:', error);
+        setError(error.response?.data?.error || 'Failed to analyze image');
+      } finally {
+        setIsAnalyzing(false);
       }
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -219,7 +200,7 @@ export function ImageAnalyzer() {
         {/* Analysis Button */}
         {selectedFile && !isAnalyzing && (
           <Button
-            onClick={analyzeImage}
+            onClick={() => analyzeImage()}
             className="w-full mb-6"
           >
             Analyze Image

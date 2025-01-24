@@ -22,10 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+.env*
 # Google Cloud credentials
 google-credentials.json
 *credentials*.json
+*musically-438108-761e536a8ba3.json
 
 # Keep example files
 !.env.example

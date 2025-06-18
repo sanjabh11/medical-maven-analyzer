@@ -7,8 +7,9 @@ import HealthRecommendations from "@/components/medical/HealthRecommendations";
 import FirstAidGuide from "@/components/medical/FirstAidGuide";
 import VitalsMonitor from "@/components/medical/VitalsMonitor";
 import { Footer } from "@/components/layout/Footer";
+import { ApiKeySetup } from "@/components/ApiKeySetup";
 import { toast } from "@/components/ui/use-toast";
-import { getGoogleApiKey } from "@/utils/apiKeyManager";
+import { getGoogleApiKey, hasValidApiKey } from "@/utils/apiKeyManager";
 import { compressImage } from "@/utils/imageCompression";
 
 interface ImageAnalysisData {
@@ -18,6 +19,8 @@ interface ImageAnalysisData {
 
 const Index = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isValidApiKey, setIsValidApiKey] = useState<boolean>(false);
+  const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
   const [currentPatientImages, setCurrentPatientImages] = useState<ImageAnalysisData[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -25,15 +28,36 @@ const Index = () => {
   const [currentTab, setCurrentTab] = useState("image-analysis");
 
   useEffect(() => {
-    const fetchApiKey = async () => {
-      const key = await getGoogleApiKey();
-      setApiKey(key);
+    const checkApiKey = async () => {
+      setIsCheckingApiKey(true);
+      try {
+        const key = await getGoogleApiKey();
+        const isValid = await hasValidApiKey();
+        
+        setApiKey(key);
+        setIsValidApiKey(isValid);
+        
+        if (!isValid) {
+          console.log('No valid API key found, showing setup screen');
+        }
+      } catch (error) {
+        console.error('Error checking API key:', error);
+        setIsValidApiKey(false);
+      } finally {
+        setIsCheckingApiKey(false);
+      }
     };
-    fetchApiKey();
+    
+    checkApiKey();
   }, []);
 
+  const handleApiKeySet = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    setIsValidApiKey(true);
+  };
+
   const analyzeImage = async (file: File) => {
-    if (!apiKey) {
+    if (!apiKey || !isValidApiKey) {
       toast({
         title: "Error",
         description: "Please configure your Google API Key first",
@@ -82,7 +106,17 @@ const Index = () => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Analyze this document and provide a detailed report.`,
+                text: `As a medical expert, analyze this medical document/image and provide a comprehensive analysis in the following format:
+
+1. **Image Type & Region**: Identify what type of medical image or document this is and what body region/system it shows.
+
+2. **Key Findings**: List the main observations, abnormalities, or notable features visible in the image.
+
+3. **Diagnostic Assessment**: Provide your professional assessment of what these findings might indicate, including possible conditions or diagnoses.
+
+4. **Patient-Friendly Explanation**: Explain the findings in simple, non-technical language that a patient could understand.
+
+Please be thorough but clear in your analysis.`,
               }, {
                 inline_data: {
                   mime_type: file.type,
@@ -180,7 +214,7 @@ const Index = () => {
           />
         );
       case "symptoms":
-        return <SymptomChecker apiKey={apiKey} showChat={showChat} />;
+        return <SymptomChecker apiKey={apiKey} />;
       case "mental":
         return <MentalWellbeing apiKey={apiKey} showChat={showChat} />;
       case "health":
@@ -193,6 +227,23 @@ const Index = () => {
         return null;
     }
   };
+
+  // Show loading screen while checking API key
+  if (isCheckingApiKey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show API key setup if no valid key is found
+  if (!isValidApiKey) {
+    return <ApiKeySetup onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-950">

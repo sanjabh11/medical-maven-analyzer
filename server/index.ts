@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import { ImageAnnotatorClient } from '@google-cloud/vision';
-import sharp from 'sharp';
+import sharp, { type Sharp, type Stats } from 'sharp';
 import dicomParser from 'dicom-parser';
 import path from 'path';
 import fs from 'fs';
@@ -129,7 +129,7 @@ async function analyzeImageQuality(imageBuffer: Buffer): Promise<ImageQualityMet
   };
 }
 
-async function calculateSharpness(image: sharp.Sharp): Promise<number> {
+async function calculateSharpness(image: Sharp): Promise<number> {
   const { data, info } = await image
     .greyscale()
     .raw()
@@ -147,7 +147,7 @@ async function calculateSharpness(image: sharp.Sharp): Promise<number> {
   return sharpness / (info.width * info.height);
 }
 
-async function calculateNoise(stats: sharp.Stats): Promise<number> {
+async function calculateNoise(stats: Stats): Promise<number> {
   return stats.channels.reduce((acc, channel) => acc + channel.stdev, 0) / stats.channels.length;
 }
 
@@ -165,7 +165,7 @@ async function enhanceImage(imageBuffer: Buffer, quality: ImageQualityMetrics): 
       pipeline = pipeline.linear(1.2, -0.1);
     }
     if (quality.sharpness < 50) {
-      pipeline = pipeline.sharpen(quality.sharpness < 25 ? 2 : 1);
+      pipeline = pipeline.sharpen({ sigma: quality.sharpness < 25 ? 2 : 1 });
     }
     
     // Apply noise reduction if needed

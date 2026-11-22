@@ -42,10 +42,14 @@ const visionClient = new ImageAnnotatorClient({
 });
 
 // Add Google Custom Search configuration
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyCsSivvsYHoMsLNqSjznmSYaQ27PgH0hPA';
-const GOOGLE_SEARCH_CX = process.env.GOOGLE_SEARCH_CX || '017576662512468239146:omuauf_lfve';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_SEARCH_CX = process.env.GOOGLE_SEARCH_CX;
 
 async function searchMedicalInfo(query: string): Promise<any[]> {
+  if (!GOOGLE_API_KEY || !GOOGLE_SEARCH_CX) {
+    console.warn('[Server] Google Custom Search not configured (GOOGLE_API_KEY/GOOGLE_SEARCH_CX missing); skipping');
+    return [];
+  }
   try {
     const response = await axios.get('https://www.googleapis.com/customsearch/v1', {
       params: {
